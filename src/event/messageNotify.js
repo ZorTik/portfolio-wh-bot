@@ -35,7 +35,7 @@ export default async function (req, env, event) {
 		});
 	}
 	const channelId = await openChannel(env.DISCORD_TOKEN, env.DISCORD_RECIPIENT);
-	await notifyEvent(env, channelId, event.payload);
+	await notifyEvent(env, channelId, event);
 	return Response.json({
 		code: 200,
 		message: 'OK',
