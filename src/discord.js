@@ -1,12 +1,13 @@
 const discordApiUrl = 'https://discord.com/api/v10';
 
 export function callApi(endpoint, token, init) {
-	if (!env.DISCORD_TOKEN) {
+	if (!token) {
 		throw new Error('Missing Discord token');
 	}
 	return fetch(discordApiUrl + endpoint, {
 		...init,
 		headers: {
+			'Content-Type': 'application/json',
 			'Authorization': 'Bot ' + token,
 			...(init.headers || {}),
 		},
@@ -20,7 +21,10 @@ export async function openChannel(token, recipient) {
 	const res = await callApi('/users/@me/channels', token, {
 		method: 'POST',
 		body: JSON.stringify(body),
-	})
-		.then(res => res.json());
-	return res.id;
+	});
+	const json = await res.json();
+	if (!res.ok) {
+		throw new Error(JSON.stringify(json));
+	}
+	return json.id;
 }

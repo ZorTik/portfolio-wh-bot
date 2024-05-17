@@ -3,26 +3,24 @@ import { callApi as call, openChannel } from '../discord';
 async function notifyEvent(env, channelId, event) {
 	const room = event.room;
 	const messages = event.messages;
-	await call('/channels/' + channelId + '/messages', env.DISCORD_TOKEN, {
+	const res = await call('/channels/' + channelId + '/messages', env.DISCORD_TOKEN, {
 		method: 'POST',
 		body: JSON.stringify({
-			content: 'New messages in ticket #' + room.id + ' (' + room.title + ')',
-			embeds: [{
-				title: 'Messages',
-				fields: [
-					{
-						name: 'Messages',
-						value: messages.map((message) => {
-							return message.username + ': ' + message.content;
-						}).join('\n'),
-					},
-				],
-			}],
+			content: 'New message in ticket #' + room.id + ' (' + room.title + ')\n> ' + messages.map((message) => {
+				return message.username + ': ' + message.content;
+			}).join('\n'),
 		}),
 		headers: {
 			'Content-Type': 'application/json',
 		},
 	});
+	if (res.ok) {
+		return Response.json({ code: 200, message: 'OK' });
+	} else {
+		const message = 'Failed to send discord message. (' + JSON.stringify(await res.json()) + ')';
+		console.log(message);
+		return Response.json({ code: 500, message }, { status: 500 });
+	}
 }
 
 export default async function (req, env, event) {
@@ -35,9 +33,5 @@ export default async function (req, env, event) {
 		});
 	}
 	const channelId = await openChannel(env.DISCORD_TOKEN, env.DISCORD_RECIPIENT);
-	await notifyEvent(env, channelId, event);
-	return Response.json({
-		code: 200,
-		message: 'OK',
-	});
+	return await notifyEvent(env, channelId, event);
 }

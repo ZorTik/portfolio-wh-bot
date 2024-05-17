@@ -10,13 +10,12 @@ async function verifyRequest(env, token, integrity_token_incoming) {
 		})
 		.then((res) => res.json());
 	if (integrity_token !== integrity_token_incoming) {
+		// There was a change in the environment
 		console.log('Integrity tokens mismatch', {
 			integrity_token,
 			integrity_token_incoming,
 		});
 		return false;
-	} else {
-		console.log('Integrity tokens match');
 	}
 	return valid === true;
 }
